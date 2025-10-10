@@ -78,13 +78,12 @@ export const App = () => {
         <effsz-split
             ini='0.25 0.5'
             min='0.25 0.25 0.1'
-            lmin='0.1'
             fdir='rr'
         >
-            <div class='first'>
+            <div class='first' slot='1'>
                 ...
             </div>
-            <div class='second'>
+            <div class='second' slot='2'>
                 ...
             </div>
             <div class='last'>

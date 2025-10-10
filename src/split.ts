@@ -297,7 +297,7 @@ const listen = (area: ISplitContainerElement) => {
     let sizeArray: number[];
     let properties: typeof PARAMS.x | typeof PARAMS.y = PARAMS.x;
     /**
-     * Drag callback
+     * Scroll callback
      * @param event
      */
     const onMove = (event: TouchEvent | MouseEvent) => {
@@ -390,6 +390,15 @@ const listen = (area: ISplitContainerElement) => {
 
 const percent = (val: string | number) => (Number(val) * 100).toFixed(2) + '%';
 
+interface ISplitEvent extends CustomEventInit {
+    detail: {
+        type: typeof EVENT_TYPE[keyof typeof EVENT_TYPE];
+        event: MouseEvent | TouchEvent;
+    }
+}
+
+type TSplitEventHandler = (event: ISplitEvent) => void;
+
 export type TUseSplit = {
     (): {
         /**
@@ -397,18 +406,18 @@ export type TUseSplit = {
          * @param callback - event handler
          * @param element - HTML element
          */
-        observe: (callback: EventListenerOrEventListenerObject, element?: HTMLElement) => () => void;
+        observe: (callback: TSplitEventHandler, element?: HTMLElement) => () => void;
         /**
          * Unobserve split events
          * @param callback - event handler
          * @param element - HTML element
          */
-        unobserve: (callback: EventListenerOrEventListenerObject, element?: HTMLElement) => void;
+        unobserve: (callback: TSplitEventHandler, element?: HTMLElement) => void;
     };
 };
 
 /**
- * Define drag and drop provider custom element
+ * Use split container
  */
 export const useSplit: TUseSplit = () => {
     const custom = globalThis.customElements;
@@ -473,7 +482,7 @@ export const useSplit: TUseSplit = () => {
                     return `<div id="${index + 1}" data-min="${min[index] || 0}" class="item" style="${propVal(VAL, percent(part))}">` +
                         `<slot name="${index + 1}"></slot>` +
                     '</div><div class="resizer"></div>';
-                }).join('')}<div class="rest" data-min="${min[val.length - 1] || 0}"><slot></slot></div></div>`;
+                }).join('')}<div class="rest" data-min="${min[val.length] || 0}"><slot></slot></div></div>`;
                 else {
                     val.forEach((part, index) => {
                         (this.shadowRoot?.children[0].children[index * 2] as HTMLDivElement)?.style?.setProperty(VAL, percent(part));
@@ -527,10 +536,10 @@ export const useSplit: TUseSplit = () => {
         });
     }
     return {
-        observe: (callback: EventListenerOrEventListenerObject, element: HTMLElement = doc?.body) => {
-            element && addListener(element, callback);
-            return () => element && removeListener(element, callback);
+        observe: (callback: TSplitEventHandler, element: HTMLElement = doc?.body) => {
+            element && addListener(element, callback as unknown as EventListenerOrEventListenerObject);
+            return () => element && removeListener(element, callback as unknown as EventListenerOrEventListenerObject);
         },
-        unobserve: (callback: EventListenerOrEventListenerObject, element: HTMLElement = doc?.body) => removeListener(element, callback)
+        unobserve: (callback: TSplitEventHandler, element: HTMLElement = doc?.body) => removeListener(element, callback as unknown as EventListenerOrEventListenerObject)
     };
 };

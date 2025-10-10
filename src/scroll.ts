@@ -402,7 +402,7 @@ const listen = (thumb: HTMLElement) => {
     }
 
     /**
-     * Drag end callback
+     * Scroll end callback
      * @param event
      */
     const onEnd = (event: MouseEvent | TouchEvent) => {
@@ -423,7 +423,7 @@ const listen = (thumb: HTMLElement) => {
     };
 
     /**
-     * Drag start handler
+     * Scroll start handler
      * @param event
      */
     const onStart = (event: MouseEvent | TouchEvent) => {
@@ -463,6 +463,15 @@ const listen = (thumb: HTMLElement) => {
     };
 };
 
+interface IScrollEvent extends CustomEventInit {
+    detail: {
+        type: typeof EVENT_TYPE[keyof typeof EVENT_TYPE];
+        event: MouseEvent | TouchEvent;
+    }
+}
+
+type TScrollEventHandler = (event: IScrollEvent) => void;
+
 export type TUseScroll = {
     (): {
         /**
@@ -470,13 +479,13 @@ export type TUseScroll = {
          * @param callback - event handler
          * @param element - HTML element
          */
-        observe: (callback: EventListenerOrEventListenerObject, element?: HTMLElement) => () => void;
+        observe: (callback: TScrollEventHandler, element?: HTMLElement) => () => void;
         /**
          * Unobserve scroll events
          * @param callback - event handler
          * @param element - HTML element
          */
-        unobserve: (callback: EventListenerOrEventListenerObject, element?: HTMLElement) => void;
+        unobserve: (callback: TScrollEventHandler, element?: HTMLElement) => void;
     };
 };
 
@@ -611,10 +620,10 @@ export const useScroll: TUseScroll = () => {
         })
     }
     return {
-        observe: (callback: EventListenerOrEventListenerObject, element: HTMLElement = doc?.body) => {
-            element && addListener(element, callback);
-            return () => element && removeListener(element, callback);
+        observe: (callback: TScrollEventHandler, element: HTMLElement = doc?.body) => {
+            element && addListener(element, callback as unknown as EventListenerOrEventListenerObject);
+            return () => element && removeListener(element, callback as unknown as EventListenerOrEventListenerObject);
         },
-        unobserve: (callback: EventListenerOrEventListenerObject, element: HTMLElement = doc?.body) => removeListener(element, callback)
+        unobserve: (callback: TScrollEventHandler, element: HTMLElement = doc?.body) => removeListener(element, callback as unknown as EventListenerOrEventListenerObject)
     };
 };

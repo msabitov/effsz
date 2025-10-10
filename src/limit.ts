@@ -98,6 +98,15 @@ const RULES = [
     ruleByPropVals('::slotted(*)', OVER_H, ['flex', '0 0 auto']) 
 ];
 
+interface ILimitEvent extends CustomEventInit {
+    detail: {
+        type: typeof EVENT_TYPE[keyof typeof EVENT_TYPE];
+        limit: number;
+    }
+}
+
+type TLimitEventHandler = (event: ILimitEvent) => void;
+
 export type TUseLimit = {
     (): {
         /**
@@ -105,13 +114,13 @@ export type TUseLimit = {
          * @param callback - event handler
          * @param element - HTML element
          */
-        observe: (callback: EventListenerOrEventListenerObject, element?: HTMLElement) => () => void;
+        observe: (callback: TLimitEventHandler, element?: HTMLElement) => () => void;
         /**
          * Unobserve limit events
          * @param callback - event handler
          * @param element - HTML element
          */
-        unobserve: (callback: EventListenerOrEventListenerObject, element?: HTMLElement) => void;
+        unobserve: (callback: TLimitEventHandler, element?: HTMLElement) => void;
     };
 };
 
@@ -240,10 +249,10 @@ export const useLimit: TUseLimit = () => {
         });
     }
     return {
-        observe: (callback: EventListenerOrEventListenerObject, element: HTMLElement = doc?.body) => {
-            element && addListener(element, callback);
-            return () => element && removeListener(element, callback);
+        observe: (callback: TLimitEventHandler, element: HTMLElement = doc?.body) => {
+            element && addListener(element, callback as unknown as EventListenerOrEventListenerObject);
+            return () => element && removeListener(element, callback as unknown as EventListenerOrEventListenerObject);
         },
-        unobserve: (callback: EventListenerOrEventListenerObject, element: HTMLElement = doc?.body) => removeListener(element, callback)
+        unobserve: (callback: TLimitEventHandler, element: HTMLElement = doc?.body) => removeListener(element, callback as unknown as EventListenerOrEventListenerObject)
     };
 };
