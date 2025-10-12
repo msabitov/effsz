@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://effnd.tech/sz/">
-    <img alt="effsz" src="https://effnd.tech/effsz_logo.svg" height="256px" />
+    <img alt="effsz" src="https://effnd.tech/sz/logo.svg" height="256px" />
   </a>
 </p>
 
