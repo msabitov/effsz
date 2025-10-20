@@ -7,7 +7,8 @@ import {
  * Scroll container
  */
 export interface IScrollContainerElement extends HTMLElement {
-    axis: 'x' | 'y';
+    get axis(): 'x' | 'y';
+    set axis(val: 'x' | 'y');
     /**
      * Main axis size
      */
@@ -58,6 +59,7 @@ export interface IScrollContainerElement extends HTMLElement {
  * Scroll container attributes
  */
 export interface IScrollContainerAttrs {
+    axis: 'x' | 'y';
     /**
      * Thumb size
      */
@@ -501,6 +503,10 @@ export const useScroll: TUseScroll = () => {
 
             get axis() {
                 return (this.getAttribute('axis') || 'y') as IScrollContainerElement['axis'];
+            }
+
+            set axis(val: 'x' | 'y') {
+                this.setAttribute('axis', val);
             }
 
             get _scrollContent(): HTMLDivElement {

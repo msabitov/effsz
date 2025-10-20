@@ -27,6 +27,10 @@ EffSZ is a web component library for resizable content
 -   [Repository](https://gitverse.ru/msabitov/effsz)
 -   [Github mirror](https://github.com/msabitov/effsz)
 
+## Examples
+
+-   [React](https://stackblitz.com/edit/effsz-react-vitejs?file=src%2FApp.tsx)
+
 ## Installation
 
 Type in your terminal:
