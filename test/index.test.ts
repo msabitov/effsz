@@ -1,8 +1,7 @@
-import { beforeAll, describe, expect, test } from 'vitest';
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 import { IScrollContainerElement, useScroll } from '../src/scroll';
 import { ILimitContainerElement, useLimit } from '../src/limit';
 import { ISplitContainerElement, useSplit } from '../src/split';
-
 
 const ID = {
     scrollY: 'scroll-1',
@@ -22,11 +21,22 @@ const SIZE = {
     F: 400
 };
 
+const getScrollXChildren = (size: number) => Array.from(Array(size).keys()).
+    map((i) => `<div style='width: ${SIZE.W}px; height: 40px; background: ${i % 2 ? 'yellow' : 'green'};'>${i}</div>`).
+    join('');
+
+const getScrollYChildren = (size: number) => Array.from(Array(size).keys()).
+    map((i) => `<div style='width: 200px; height: ${SIZE.H}px; background: ${i % 2 ? 'yellow' : 'green'};'>${i}</div>`).
+    join('');
+
 describe('EffSZ:', () => {
-    let handlers: Partial<Record<'scroll' | 'split' | 'limit', {
-        observe: Function;
-        unobserve: Function;
-    }>> = {};
+    let handlers: Partial<{
+        scroll: ReturnType<typeof useScroll>;
+        limit: ReturnType<typeof useLimit>;
+        split: ReturnType<typeof useSplit>;
+    }> = {};
+    let scrollXCount: number = 10;
+    let scrollYCount: number = 10;
     beforeAll(() => {
         handlers = {
             scroll: useScroll(),
@@ -74,7 +84,7 @@ describe('EffSZ:', () => {
                     </div>
                     <div class='bg' slot='1'><div style='height: 100%; overflow: hidden;'>
                         <effsz-scroll id='${ID.scrollY}' axis='y'>
-                            ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => `<div style='width: 200px; height: ${SIZE.H}px; background: ${i % 2 ? 'yellow' : 'green'};'>${i}</div>`).join('')}
+                            ${getScrollYChildren(scrollXCount)}
                         </effsz-scroll>
                     </div>
                 </div>
@@ -87,7 +97,7 @@ describe('EffSZ:', () => {
             >
                 <div class='bg'>
                     <effsz-scroll id='${ID.scrollX}' axis='x'>
-                        ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => `<div style='width: ${SIZE.W}px; height: 40px; background: ${i % 2 ? 'yellow' : 'green'};'>${i}</div>`).join('')}
+                        ${getScrollXChildren(scrollXCount)}
                     </effsz-scroll>
                 </div>
                 <div class='bg' slot='1' style='display: flex;'>
@@ -155,6 +165,45 @@ describe('EffSZ:', () => {
                 const container = document.getElementById(ID.scrollY) as IScrollContainerElement;
                 container.scrollToStart();
                 expect(container.scrollOffset).toBe(0);
+            });
+
+            test('higher keypoint event handler:', async () => {
+                let isCalled = false;
+                const unobserveScroll = handlers.scroll?.observe((event) => {
+                    if (event.detail.type === 'higher') {
+                        debugger
+                        const container = document.getElementById(ID.scrollY) as IScrollContainerElement;
+                        if (scrollYCount > 40) return;
+                        scrollYCount += 10;
+                        container.innerHTML = getScrollYChildren(scrollYCount);
+                        isCalled = true;
+                    }
+                });
+                const container = document.getElementById(ID.scrollY) as IScrollContainerElement;
+                container.scrollToOffset(0);
+                const attrVal = 100;
+                container.setAttribute('higher', attrVal + '')
+                container.scrollToEnd();
+                await new Promise(resolve => setTimeout(resolve, 700));
+                await vi.waitFor(() => isCalled, {timeout: 700});
+                expect(container.children.length).toBe(20);
+            });
+
+            test('lower keypoint event handler:', async () => {
+                let isCalled = false;
+                const unobserveScroll = handlers.scroll?.observe((event) => {
+                    if (event.detail.type === 'lower') {
+                        isCalled = true;
+                    }
+                });
+                const container = document.getElementById(ID.scrollY) as IScrollContainerElement;
+                container.scrollToEnd();
+                const attrVal = 100;
+                container.setAttribute('lower', attrVal + '')
+                container.scrollToStart();
+                await new Promise(resolve => setTimeout(resolve, 700));
+                await vi.waitFor(() => isCalled, {timeout: 700});
+                expect(isCalled).toBeTruthy();
             });
         });
 

@@ -100,6 +100,20 @@ export interface IScrollContainerAttrs {
      * Scrollbar transition duration
      */
     sbdur: string;
+    /**
+     * `Higher` keypoint
+     * @description
+     * The keypoint that triggering when it intersects in the direction of the end.
+     * The value is the number of pixels counted from the end of the container.
+     */
+    higher?: string;
+    /**
+     * `Lower` keypoint
+     * @description
+     * The keypoint that triggering when it intersects in the direction of the start.
+     * The value is the number of pixels counted from the start of the container.
+     */
+    lower?: string;
 }
 
 // utils
@@ -117,6 +131,8 @@ const {
 } = resolveModule(MODULE);
 
 // constants
+const LOWER = 'lower';
+const HIGHER = 'higher';
 const BEFORE = '::before';
 const AFTER = '::after';
 const OPACITY = 'opacity';
@@ -190,6 +206,11 @@ const PSEUDO = [
     ], POS_ABS
 ] as [string, string][];
 
+const CUSTOM_EVENT_TYPE = {
+    LOWER,
+    HIGHER
+};
+
 const ATTRS = {
     /**
      * Thumb size
@@ -232,6 +253,8 @@ const ATTRS = {
      */
     sbdur: 'sbdur',
 }  as const;
+
+const OBSERVED_ATTRS = [...Object.keys(ATTRS), LOWER, HIGHER];
 
 const PROPERTIES = {
     [ATTRS.shdur]: [SHADOW, DURATION],
@@ -393,8 +416,8 @@ const listen = (thumb: HTMLElement) => {
         
         event.stopImmediatePropagation();
         event[PREV_DEF]();
-        const size = root[PARAMS[axis].size]
-        const scroll = root[PARAMS[axis].scroll]
+        const size = root[PARAMS[axis].size];
+        const scroll = root[PARAMS[axis].scroll];
         const to = offset + (currentPoint - startPoint) / size * scroll;
         if (axis === 'x') root?.scrollTo(to, 0)
         else root?.scrollTo(0, to);
@@ -469,6 +492,10 @@ interface IScrollEvent extends CustomEventInit {
     detail: {
         type: typeof EVENT_TYPE[keyof typeof EVENT_TYPE];
         event: MouseEvent | TouchEvent;
+    } | {
+        type: 'higher' | 'lower';
+        keypoint: number;
+        current: number;
     }
 }
 
@@ -499,7 +526,7 @@ export const useScroll: TUseScroll = () => {
     const doc = globalThis.document;
     if (custom && !custom?.get(tagName)) {
         custom.define(tagName, class Scroll extends HTMLElement implements IScrollContainerElement {
-            static observedAttributes = Object.keys(ATTRS);
+            static observedAttributes = OBSERVED_ATTRS;
 
             get axis() {
                 return (this.getAttribute('axis') || 'y') as IScrollContainerElement['axis'];
@@ -539,6 +566,19 @@ export const useScroll: TUseScroll = () => {
 
             protected _scrollCleanUp: Function = () => undefined;
 
+            protected _prev: {
+                rest: number;
+                offset: number;
+            };
+
+            protected _keypoints: {
+                lower: number;
+                higher: number;
+            } = {
+                higher: 0,
+                lower: 0
+            };
+
             protected _setVars = () => {
                 const content = this._scrollContent;
                 let thumbSize;
@@ -553,14 +593,42 @@ export const useScroll: TUseScroll = () => {
 
                 if (content[axisParams.offset] < content[axisParams.scroll] - content[axisParams.size]) content.style.setProperty(varName(...INNER_PROPERTIES.aft), '1');
                 else content.style.setProperty(varName(...INNER_PROPERTIES.aft), '0');
-                this._scrollContent?.style.setProperty(varName(...INNER_PROPERTIES.len), thumbSize + 'px')
-                this._scrollContent?.style.setProperty(varName(...INNER_PROPERTIES.off), offset + 'px')
+                this._scrollContent?.style.setProperty(varName(...INNER_PROPERTIES.len), thumbSize + 'px');
+                this._scrollContent?.style.setProperty(varName(...INNER_PROPERTIES.off), offset + 'px');
+                const higher = this._keypoints.higher;
+                const lower = this._keypoints.lower;
+                const currentOffset = this.scrollOffset;
+                const currentOffsetRest = this.scrollSize - this.size - currentOffset;
+                const prevOffset = this._prev?.offset || 0;
+                const prevOffsetRest = this._prev?.rest || 0;
+                if (prevOffset !== currentOffset || prevOffsetRest !== currentOffsetRest) {
+                    if (higher && (prevOffsetRest > higher) && (currentOffsetRest <= higher)) dispatch(
+                        this, CUSTOM_EVENT_TYPE.HIGHER, {
+                            keypoint: higher,
+                            current: currentOffsetRest
+                        }
+                    );
+                    if (lower && (prevOffset > lower) && (currentOffset <= lower)) dispatch(
+                        this, CUSTOM_EVENT_TYPE.LOWER, {
+                            keypoint: lower,
+                            current: currentOffset
+                        }
+                    );
+                }
+                this._prev = {
+                    rest: this.scrollSize - this.size,
+                    offset: this.scrollOffset
+                };
             };
 
             connectedCallback() {
                 const shadowRoot = this.attachShadow({ mode: 'open' });
                 shadowRoot.innerHTML = `<div id="${CONTENT_SELECTOR.slice(1)}"><div id="${BAR_SELECTOR.slice(1)}"><div id="${THUMB_SELECTOR.slice(1)}"></div></div><slot></slot></div>`;
                 shadowRoot.adoptedStyleSheets = [getStyleSheet(RULES)];
+                this._keypoints = {
+                    [LOWER]: Number(this.getAttribute(LOWER)) || 0,
+                    [HIGHER]: Number(this.getAttribute(HIGHER)) || 0,
+                };
                 this._setVars();
                 this._scrollContent.addEventListener(SCROLL, this._setVars);
                 const observer = new ResizeObserver(this._setVars);
@@ -578,8 +646,15 @@ export const useScroll: TUseScroll = () => {
             }
 
             applyAttributeValue(name: keyof typeof PROPERTIES, value: string) {
-                const property = PROPERTIES[name];
-                if (property) this._scrollContent.style.setProperty(varName(...property), value);
+                switch (name) {
+                    case LOWER:
+                    case HIGHER:
+                        this._keypoints[name] = Number(value);
+                        break;
+                    default:
+                        const property = PROPERTIES[name];
+                        if (property) this._scrollContent.style.setProperty(varName(...property), value);
+                }
             }
 
             attributeChangedCallback(
