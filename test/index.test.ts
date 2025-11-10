@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, test, vi } from 'vitest';
 import { IScrollContainerElement, useScroll } from '../src/scroll';
 import { ILimitContainerElement, useLimit } from '../src/limit';
 import { ISplitContainerElement, useSplit } from '../src/split';
+import { IMasonryContainerElement, useMasonry } from '../src/masonry';
 
 const ID = {
     scrollY: 'scroll-1',
@@ -12,7 +13,8 @@ const ID = {
     limitX: 'limit-1',
     limitXR: 'limit-2',
     limitY: 'limit-3',
-    limitYR: 'limit-4'
+    limitYR: 'limit-4',
+    masonry: 'masonry'
 };
 
 const SIZE = {
@@ -29,11 +31,18 @@ const getScrollYChildren = (size: number) => Array.from(Array(size).keys()).
     map((i) => `<div style='width: 200px; height: ${SIZE.H}px; background: ${i % 2 ? 'yellow' : 'green'};'>${i}</div>`).
     join('');
 
+const baseMasonryItems = ['1/2', '1', '2/1', '16/9', '9/16', '1', '3/4', '4/3', '1', '1', '1/2'];
+const getMasonryChildren = (count: number = 1) => Array.from(Array(count).keys()).
+    map(i => baseMasonryItems.map((i, ind) => `<div slot="${ind}" data-effsz-ar="${i}" style='background: oklch(1 0.4 ${ind * 45});'>#${ind} (${i})</div>`).
+    join('')).
+    join('');
+
 describe('EffSZ:', () => {
     let handlers: Partial<{
         scroll: ReturnType<typeof useScroll>;
         limit: ReturnType<typeof useLimit>;
         split: ReturnType<typeof useSplit>;
+        masonry: ReturnType<typeof useMasonry>;
     }> = {};
     let scrollXCount: number = 10;
     let scrollYCount: number = 10;
@@ -41,7 +50,8 @@ describe('EffSZ:', () => {
         handlers = {
             scroll: useScroll(),
             split: useSplit(),
-            limit: useLimit()
+            limit: useLimit(),
+            masonry: useMasonry()
         };
         window.document.body.innerHTML = `
             <style>
@@ -117,7 +127,11 @@ describe('EffSZ:', () => {
                     </effsz-limit>
                 </div>
                 <div class='bg' slot='2'>
-                    Empty
+                    <effsz-scroll axis='y'>
+                        <effsz-masonry axis='y' tracks='4' trackgap='0.4rem'>
+                            ${getMasonryChildren()}
+                        </effsz-masonry>
+                    </effsz-scroll>
                 </div>
             </effsz-split>
         </effsz-split>
@@ -171,7 +185,6 @@ describe('EffSZ:', () => {
                 let isCalled = false;
                 const unobserveScroll = handlers.scroll?.observe((event) => {
                     if (event.detail.type === 'higher') {
-                        debugger
                         const container = document.getElementById(ID.scrollY) as IScrollContainerElement;
                         if (scrollYCount > 40) return;
                         scrollYCount += 10;

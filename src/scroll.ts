@@ -379,7 +379,7 @@ const RULES = [
     ]),
     ruleByPropVals(space(HOST_X, BAR_SELECTOR), FLEX_ROW, WR_MODE_V),
     ruleByPropVals(`:host(:hover) ${BAR_SELECTOR}, ${BAR_SELECTOR}[active], :host([vis=always]) ${BAR_SELECTOR}`, [
-        INLINE_SIZE, varExp(PROPERTIES.thsize)
+        INLINE_SIZE, `calc(min(${varExp(INNER_PROPERTIES.bef)} + ${varExp(INNER_PROPERTIES.aft)}, 1) * ${varExp(PROPERTIES.thsize)})`
     ]),
     ruleByPropVals(`:host([vis=hidden]) ${BAR_SELECTOR},:host([vis=hidden]:hover) ${BAR_SELECTOR}, :host([disabled]) ${BAR_SELECTOR}`, [
         INLINE_SIZE, 0

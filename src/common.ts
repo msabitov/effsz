@@ -10,9 +10,9 @@ const EVENT_TYPE = {
 
 export const varName = (...parts: string[]) => `--${LIBRARY}-${parts.join('-')}`;
 export const tagName = (name: string) => LIBRARY + '-' + name;
-export const propVals = (...pairs: [string, string | number][]) => pairs.map(([prop,val]) => prop + ':' + val + ';').join('');
+export const propVals = (...pairs: (string | number)[][]) => pairs.map(([prop,val]) => prop + ':' + val + ';').join('');
 export const rule = (selector: string, content: string) => selector + `{${content}}`;
-export const ruleByPropVals = (selector: string, ...content: [string, string | number][]) => selector + `{${propVals(...content)}}`;
+export const ruleByPropVals = (selector: string, ...content: (string | number)[][]) => selector + `{${propVals(...content)}}`;
 export const resolveModule =  <T>(name: string) => {
     const eventName = LIBRARY + name;
     return {

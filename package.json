@@ -1,6 +1,6 @@
 {
   "name": "effsz",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Self-confident size containers",
   "type": "module",
   "scripts": {
@@ -12,6 +12,7 @@
     "split",
     "scroll",
     "limit",
+    "masonry",
     "web components",
     "ui",
     "typescript"
@@ -33,6 +34,11 @@
       "types": "./dist/types/limit.d.ts",
       "import": "./dist/limit.js",
       "require": "./dist/limit.js"
+    },
+    "./masonry": {
+      "types": "./dist/types/masonry.d.ts",
+      "import": "./dist/masonry.js",
+      "require": "./dist/masonry.js"
     }
   },
   "author": "Marat Sabitov",

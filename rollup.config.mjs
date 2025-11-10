@@ -46,5 +46,12 @@ export default [
         },
         output,
         plugins
+    },
+    {
+        input: {
+            masonry: 'src/masonry.ts'
+        },
+        output,
+        plugins
     }
 ];
