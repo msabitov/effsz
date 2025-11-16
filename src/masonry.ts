@@ -7,6 +7,7 @@ import { resolveModule, ruleByPropVals, space } from "./common";
 export interface IMasonryContainerElement extends HTMLElement {
     get axis(): 'x' | 'y';
     set axis(val: 'x' | 'y');
+    get layout(): Record<number, number[]>;
 }
 
 /**
@@ -152,12 +153,18 @@ export const useMasonry: TUseMasonry = () => {
                 return OBSERVED_ATTRS_KEYS;
             }
 
+            protected _layout: Record<number, number[]> = {};
+
             get axis() {
                 return (this.getAttribute('axis') || 'y') as IMasonryContainerElement['axis'];
             }
 
             set axis(val: 'x' | 'y') {
                 if (val === 'x' || val === 'y') this.setAttribute(ATTRS.axis, val);
+            }
+
+            get layout() {
+                return this._layout;
             }
 
             // protected methods
@@ -173,10 +180,15 @@ export const useMasonry: TUseMasonry = () => {
                 let result: Record<string, {
                     items: [number | null, string][];
                     sum: number;
-                }> = Object.fromEntries(Array.from(Array(tracks).keys()).map(i=>[i, {
-                    items: [],
-                    sum: 0
-                }]));
+                }> = {};
+                this._layout = {};
+                Array.from(Array(tracks).keys()).forEach(i=> {
+                    result[i] = {
+                        items: [],
+                        sum: 0
+                    };
+                    this._layout[i] = [];
+                });
                 let divRatioAttr = this.getAttribute(ATTRS.divratio) || DEF_DIVRATIO[this.axis];
                 const [gapA, gapB='1'] = divRatioAttr.split('/');
                 let divRatio: number;
@@ -194,6 +206,7 @@ export const useMasonry: TUseMasonry = () => {
                     if (this.axis === 'y') ratio = Number(a) / Number(b);
                     else ratio = Number(b) / Number(a);
                     const fixedRatio = Number((1 / ratio).toFixed(4));
+                    this._layout[index].push(Number(ind));
                     acc[index].items.push([Number(ind), ratioString]);
                     acc[index].items.push([null, divRatioAttr]);
                     acc[index].sum += (fixedRatio + fixedDivRatio);

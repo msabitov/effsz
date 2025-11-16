@@ -53,5 +53,12 @@ export default [
         },
         output,
         plugins
+    },
+    {
+        input: {
+            expand: 'src/expand.ts'
+        },
+        output,
+        plugins
     }
 ];

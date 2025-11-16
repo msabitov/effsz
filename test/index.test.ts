@@ -3,6 +3,7 @@ import { IScrollContainerElement, useScroll } from '../src/scroll';
 import { ILimitContainerElement, useLimit } from '../src/limit';
 import { ISplitContainerElement, useSplit } from '../src/split';
 import { IMasonryContainerElement, useMasonry } from '../src/masonry';
+import { IExpandContainerElement, useExpand } from '../src/expand';
 
 const ID = {
     scrollY: 'scroll-1',
@@ -14,7 +15,9 @@ const ID = {
     limitXR: 'limit-2',
     limitY: 'limit-3',
     limitYR: 'limit-4',
-    masonry: 'masonry'
+    masonry: 'masonry',
+    expand: 'expand',
+    expandBtn: 'expandBtn'
 };
 
 const SIZE = {
@@ -43,6 +46,7 @@ describe('EffSZ:', () => {
         limit: ReturnType<typeof useLimit>;
         split: ReturnType<typeof useSplit>;
         masonry: ReturnType<typeof useMasonry>;
+        resize: ReturnType<typeof useExpand>;
     }> = {};
     let scrollXCount: number = 10;
     let scrollYCount: number = 10;
@@ -51,7 +55,8 @@ describe('EffSZ:', () => {
             scroll: useScroll(),
             split: useSplit(),
             limit: useLimit(),
-            masonry: useMasonry()
+            masonry: useMasonry(),
+            resize: useExpand()
         };
         window.document.body.innerHTML = `
             <style>
@@ -91,6 +96,12 @@ describe('EffSZ:', () => {
                             <div style='width: 50px; background: blue;'>4</div>
                             <div slot='limit' style='width:150px;background:orange;'>rest</div>
                         </effsz-limit>
+                        <div style='background: grey;display:flex;justify-content:space-between;'>Toggle expand <button id='${ID.expandBtn}'>+</button></div>
+                        <effsz-expand id='${ID.expand}' min='20px'>
+                            <div style='height: 100px; background: grey;'>Expanded #1</div>
+                            <div style='background: cyan;'>Expanded #2</div>
+                        </effsz-expand>
+                        After
                     </div>
                     <div class='bg' slot='1'><div style='height: 100%; overflow: hidden;'>
                         <effsz-scroll id='${ID.scrollY}' axis='y'>
@@ -128,7 +139,7 @@ describe('EffSZ:', () => {
                 </div>
                 <div class='bg' slot='2'>
                     <effsz-scroll axis='y'>
-                        <effsz-masonry axis='y' tracks='4' trackgap='0.4rem'>
+                        <effsz-masonry id="${ID.masonry}" axis='y' tracks='4' trackgap='0.4rem'>
                             ${getMasonryChildren()}
                         </effsz-masonry>
                     </effsz-scroll>
@@ -401,4 +412,59 @@ describe('EffSZ:', () => {
             });
         });
     });
+
+    describe('effsz-masonry:', () => {
+        test('layout:', () => {
+            const container = document.getElementById(ID.masonry) as IMasonryContainerElement;
+            expect(container.layout).toEqual({
+                0: [0, 8],
+                1: [1, 6, 10],
+                2: [2, 4, 9],
+                3: [3, 5, 7]
+            });
+        });
+    });
+
+    describe('effsz-expand:', () => {
+        let container: IExpandContainerElement;
+        const min = 50;
+        const max = 100;
+
+        beforeAll(() => {
+            container = document.getElementById(ID.expand) as IExpandContainerElement;
+            container.setAttribute('min', min + 'px');
+            container.setAttribute('max', max + 'px');
+            const btn = document.getElementById(ID.expandBtn) as HTMLButtonElement;
+            const handler = () => {
+                btn.innerText = container.isOpen ? '+' : '-';
+                container.toggle();
+            }
+            btn?.addEventListener('click', handler);
+            return () => btn?.removeEventListener('click', handler);
+        });
+
+        test('expand:', () => {
+            container.expand();
+            expect(container.isOpen).toBeTruthy();
+        });
+
+        test('collapse:', () => {
+            container.collapse();
+            expect(container.isOpen).toBeFalsy();
+        });
+
+        test('toggle:', () => {
+            const history = [];
+            container.toggle();
+            history.push(container.isOpen);
+            container.toggle();
+            history.push(container.isOpen);
+            expect(history).toEqual([true,false]);
+        });
+
+        test('`open` attribute:', () => {
+            container.setAttribute('open', '')
+            expect(container.isOpen).toBeTruthy();
+        });
+    })
 });

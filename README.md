@@ -52,7 +52,8 @@ In short each web component should be defined before use. Every module in this l
 -    `useLimit` from `effsz/limit` defines container that limits count of visible children when it overflows;
 -    `useScroll` from `effsz/scroll` defines container that based on the native scroll, but sets its own scrollbar and shadows which are displayed the same for different browsers;
 -    `useSplit` from `effsz/split` defines container that split its area between slots that can be resized;
--    `useMasonry` from `effsz/masonry` defines container where one axis uses a typical strict grid layout and the other a masonry layout. It uses slots and each slotted element must have `slot` attribute with its index and an `data-effsz-ar` attribute with the required aspect ratio value.
+-    `useMasonry` from `effsz/masonry` defines container where one axis uses a typical strict grid layout and the other a masonry layout. It uses slots and each slotted element must have `slot` attribute with its index and an `data-effsz-ar` attribute with the required aspect ratio value;
+-    `useExpand` from `effsz/expand` defines container that can be expanded or collapsed to predefined max and min sizes respectively;
 
 Each function returns object with `observe` and `unobserve` event handlers to control components behavior.
 
