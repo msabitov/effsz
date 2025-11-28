@@ -200,7 +200,7 @@ export const useMasonry: TUseMasonry = () => {
                     if (ind === null) return acc;
                     const sumArray = Object.values(acc).map(i => i.sum);
                     const index = sumArray.indexOf(Math.min(...sumArray));
-                    const ratioString = (child as HTMLElement).dataset.effszAr || '1';
+                    const ratioString = (child as HTMLElement).style.aspectRatio || (child as HTMLElement).dataset.effszAr || '1';
                     const [a,b='1'] = ratioString.split('/')
                     let ratio: number;
                     if (this.axis === 'y') ratio = Number(a) / Number(b);

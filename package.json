@@ -1,6 +1,6 @@
 {
   "name": "effsz",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Self-confident size containers",
   "type": "module",
   "scripts": {
@@ -13,6 +13,7 @@
     "scroll",
     "limit",
     "masonry",
+    "carousel",
     "expand",
     "web components",
     "ui",
@@ -45,6 +46,11 @@
       "types": "./dist/types/expand.d.ts",
       "import": "./dist/expand.js",
       "require": "./dist/expand.js"
+    },
+    "./carousel": {
+      "types": "./dist/types/carousel.d.ts",
+      "import": "./dist/carousel.js",
+      "require": "./dist/carousel.js"
     }
   },
   "author": "Marat Sabitov",

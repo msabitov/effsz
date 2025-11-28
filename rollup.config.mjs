@@ -60,5 +60,12 @@ export default [
         },
         output,
         plugins
+    },
+    {
+        input: {
+            carousel: 'src/carousel.ts'
+        },
+        output,
+        plugins
     }
 ];

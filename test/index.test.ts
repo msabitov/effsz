@@ -4,6 +4,7 @@ import { ILimitContainerElement, useLimit } from '../src/limit';
 import { ISplitContainerElement, useSplit } from '../src/split';
 import { IMasonryContainerElement, useMasonry } from '../src/masonry';
 import { IExpandContainerElement, useExpand } from '../src/expand';
+import { ICarouselContainerElement, useCarousel } from '../src/carousel';
 
 const ID = {
     scrollY: 'scroll-1',
@@ -17,7 +18,8 @@ const ID = {
     limitYR: 'limit-4',
     masonry: 'masonry',
     expand: 'expand',
-    expandBtn: 'expandBtn'
+    expandBtn: 'expandBtn',
+    carousel: 'carousel'
 };
 
 const SIZE = {
@@ -36,7 +38,7 @@ const getScrollYChildren = (size: number) => Array.from(Array(size).keys()).
 
 const baseMasonryItems = ['1/2', '1', '2/1', '16/9', '9/16', '1', '3/4', '4/3', '1', '1', '1/2'];
 const getMasonryChildren = (count: number = 1) => Array.from(Array(count).keys()).
-    map(i => baseMasonryItems.map((i, ind) => `<div slot="${ind}" data-effsz-ar="${i}" style='background: oklch(1 0.4 ${ind * 45});'>#${ind} (${i})</div>`).
+    map(i => baseMasonryItems.map((i, ind) => `<div slot="${ind}" ${!(ind % 2) ? `data-effsz-ar="${i}"` : ''} style='${ind % 2 ? `aspect-ratio: ${i};` : ''}background: oklch(1 0.4 ${ind * 45});'>#${ind} (${i})</div>`).
     join('')).
     join('');
 
@@ -47,16 +49,19 @@ describe('EffSZ:', () => {
         split: ReturnType<typeof useSplit>;
         masonry: ReturnType<typeof useMasonry>;
         resize: ReturnType<typeof useExpand>;
+        carousel: ReturnType<typeof useCarousel>;
     }> = {};
     let scrollXCount: number = 10;
     let scrollYCount: number = 10;
+    const carouselIni = 2;
     beforeAll(() => {
         handlers = {
             scroll: useScroll(),
             split: useSplit(),
             limit: useLimit(),
             masonry: useMasonry(),
-            resize: useExpand()
+            resize: useExpand(),
+            carousel: useCarousel()
         };
         window.document.body.innerHTML = `
             <style>
@@ -66,6 +71,10 @@ describe('EffSZ:', () => {
                 }
                 .bg {
                     background: #d1cccc;
+                }
+                .carousel {
+                    width: 400px;
+                    height: 200px;
                 }
             </style>
             <effsz-split
@@ -146,6 +155,14 @@ describe('EffSZ:', () => {
                 </div>
             </effsz-split>
         </effsz-split>
+        <effsz-carousel id="${ID.carousel}" ini="${carouselIni}" type="slide" class='carousel'>
+            <div slot='bef'>bef</div>
+            <div slot='aft'>aft</div>
+            <div style='background: red;'><div style="font-size: 32px;margin: auto;justify-self: center;">1 item</div></div>
+            <div style='background: blue;'><div style="font-size: 32px;margin: auto;justify-self: center;">2 item</div></div>
+            <div style='background: red;'><div style="font-size: 32px;margin: auto;justify-self: center;">3 item</div></div>
+            <div style='background: blue;'><div style="font-size: 32px;margin: auto;justify-self: center;">4 item</div></div>
+        </effsz-carousel>
         `;
     });
 
@@ -465,6 +482,37 @@ describe('EffSZ:', () => {
         test('`open` attribute:', () => {
             container.setAttribute('open', '')
             expect(container.isOpen).toBeTruthy();
+        });
+    });
+
+    describe('effsz-carousel:', () => {
+        let container: ICarouselContainerElement;
+
+        beforeAll(() => {
+            container = document.getElementById(ID.carousel) as ICarouselContainerElement;
+        });
+
+        test('active:', async () => {
+            expect(container.active).toBe(carouselIni);
+        });
+
+        test('items:', async () => {
+            expect(container.items).toEqual([...container.querySelectorAll(`#${ID.carousel} > *:not([slot])`)]);
+        });
+
+        test('next:', async () => {
+            await container.next();
+            expect(container.active).toBe(carouselIni + 1);
+        });
+
+        test('show:', async () => {
+            await container.show(0);
+            expect(container.active).toBe(0);
+        });
+
+        test('prev:', async () => {
+            await container.prev();
+            expect(container.active).toBe(3);
         });
     })
 });
