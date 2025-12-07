@@ -13,7 +13,7 @@
 
 </div>
 
-EffSZ is a web component library for resizable content
+EffSZ is a web component library that controls the size and visibility of content.
 
 ## Some features
 

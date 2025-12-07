@@ -1,6 +1,6 @@
 {
   "name": "effsz",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Self-confident size containers",
   "type": "module",
   "scripts": {

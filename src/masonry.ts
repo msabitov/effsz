@@ -260,7 +260,7 @@ export const useMasonry: TUseMasonry = () => {
                         this._render();
                         break;
                     case ATTRS.trackgap:
-                        root.style.setProperty(varName(name), newValue);
+                        root.style.setProperty(varName(name), !Number.isNaN(+newValue) ? newValue + 'px' : newValue);
                         break;
                 }
             }

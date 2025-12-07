@@ -122,7 +122,7 @@ const {
     getStyleSheet
 } = resolveModule(MODULE);
 
-const OBSERVED_ATTRS_KEYS = [MIN, MAX, TF, DUR, DEL];
+const OBSERVED_ATTRS_KEYS = [MIN, MAX, TF, DUR, DEL] as const;
 
 // css
 const RULES = [
@@ -220,8 +220,13 @@ export const useExpand: TUseExpand = () => {
 
             attributeChangedCallback(name: typeof OBSERVED_ATTRS_KEYS[number], _: string, newValue: string) {
                 if (!this.shadowRoot) return;
-                else if (newValue) (this.shadowRoot?.children[0] as HTMLElement).style.setProperty(varName(name), newValue);
-                else (this.shadowRoot?.children[0] as HTMLElement).style.removeProperty(varName(name));
+                else if (newValue) {
+                    let val = newValue;
+                    const isNumber = !Number.isNaN(+newValue);
+                    if (isNumber && (name === MIN || name === MAX)) val = newValue + 'px';
+                    else if (isNumber && (name === DUR || name === DEL)) val = newValue + 'ms';
+                    (this.shadowRoot?.children[0] as HTMLElement).style.setProperty(varName(name), val);
+                } else (this.shadowRoot?.children[0] as HTMLElement).style.removeProperty(varName(name));
             }
 
             disconnectedCallback() {
