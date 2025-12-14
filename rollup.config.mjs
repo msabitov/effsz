@@ -67,5 +67,12 @@ export default [
         },
         output,
         plugins
+    },
+    {
+        input: {
+            slide: 'src/slide.ts'
+        },
+        output,
+        plugins
     }
 ];

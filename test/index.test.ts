@@ -5,6 +5,7 @@ import { ISplitContainerElement, useSplit } from '../src/split';
 import { IMasonryContainerElement, useMasonry } from '../src/masonry';
 import { IExpandContainerElement, useExpand } from '../src/expand';
 import { ICarouselContainerElement, useCarousel } from '../src/carousel';
+import { ISlideContainerElement, useSlide } from '../src/slide';
 
 const ID = {
     scrollY: 'scroll-1',
@@ -19,7 +20,10 @@ const ID = {
     masonry: 'masonry',
     expand: 'expand',
     expandBtn: 'expandBtn',
-    carousel: 'carousel'
+    carousel: 'carousel',
+    slide: 'slide',
+    slideContent: 'slideContent',
+    slideBtn: 'slideBtn'
 };
 
 const SIZE = {
@@ -50,6 +54,7 @@ describe('EffSZ:', () => {
         masonry: ReturnType<typeof useMasonry>;
         resize: ReturnType<typeof useExpand>;
         carousel: ReturnType<typeof useCarousel>;
+        slide: ReturnType<typeof useSlide>;
     }> = {};
     let scrollXCount: number = 10;
     let scrollYCount: number = 10;
@@ -61,7 +66,8 @@ describe('EffSZ:', () => {
             limit: useLimit(),
             masonry: useMasonry(),
             resize: useExpand(),
-            carousel: useCarousel()
+            carousel: useCarousel(),
+            slide: useSlide()
         };
         window.document.body.innerHTML = `
             <style>
@@ -75,6 +81,14 @@ describe('EffSZ:', () => {
                 .carousel {
                     width: 400px;
                     height: 200px;
+                }
+                #${ID.slideContent} {
+                    background: #dce9e7;
+                    width: 200px;
+                }
+                #${ID.slideContent}[pos=t], #${ID.slideContent}[pos=b] {
+                    height: 200px;
+                    width: 100%;
                 }
             </style>
             <effsz-split
@@ -163,6 +177,10 @@ describe('EffSZ:', () => {
             <div style='background: red;'><div style="font-size: 32px;margin: auto;justify-self: center;">3 item</div></div>
             <div style='background: blue;'><div style="font-size: 32px;margin: auto;justify-self: center;">4 item</div></div>
         </effsz-carousel>
+        <button id="${ID.slideBtn}">Toggle sliding container</button>
+        <effsz-slide id="${ID.slide}" modal>
+            <div id="${ID.slideContent}">Inside sliding container</div>
+        </effsz-slide>
         `;
     });
 
@@ -513,6 +531,31 @@ describe('EffSZ:', () => {
         test('prev:', async () => {
             await container.prev();
             expect(container.active).toBe(3);
+        });
+    });
+
+    describe('effsz-slide:', () => {
+        let container: ISlideContainerElement;
+
+        beforeAll(() => {
+            container = document.getElementById(ID.slide) as ISlideContainerElement;
+            const btn = document.getElementById(ID.slideBtn) as HTMLButtonElement;
+            btn.addEventListener('click', () => container.isOpen ? container.close() : container.open())
+        });
+
+        test('open:', async () => {
+            await container.open();
+            expect(container.isOpen).toBeTruthy();
+        });
+
+        test('close:', async () => {
+            await container.close();
+            expect(container.isOpen).toBeFalsy();
+        });
+
+        test('toggle:', async () => {
+            await container.toggle();
+            expect(container.isOpen).toBeTruthy();
         });
     })
 });
