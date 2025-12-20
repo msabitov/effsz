@@ -10,6 +10,9 @@
 
 [![license](https://badgen.net/static/license/Apache%202.0/blue)](https://gitverse.ru/msabitov/effsz/content/master/LICENSE)
 [![npm latest package](https://badgen.net/npm/v/effsz)](https://www.npmjs.com/package/effsz)
+![minified size](https://badgen.net/bundlephobia/min/effsz)
+![minzipped size](https://badgen.net/bundlephobia/minzip/effsz)
+![install size](https://badgen.net/packagephobia/install/effsz)
 
 </div>
 
@@ -24,12 +27,14 @@ EffSZ is a web component library that controls the size and visibility of conten
 ## Links
 
 -   [Docs](https://effnd.tech/sz/)
--   [Repository](https://gitverse.ru/msabitov/effsz)
--   [Github mirror](https://github.com/msabitov/effsz)
+-   [SourceCraft](https://sourcecraft.dev/msabitov/effsz)
+-   [GitVerse](https://gitverse.ru/msabitov/effsz)
+-   [GitHub](https://github.com/msabitov/effsz)
 
 ## Examples
 
 -   [React](https://stackblitz.com/edit/effsz-react-vitejs?file=src%2FApp.tsx)
+-   [Svelte](https://stackblitz.com/edit/effsz-svelte-vitejs?file=src%2FApp.svelte)
 
 ## Installation
 

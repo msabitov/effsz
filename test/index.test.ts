@@ -31,6 +31,9 @@ const SIZE = {
     W: 200,
     F: 400
 };
+function timeout(ms: number = 1000) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 const getScrollXChildren = (size: number) => Array.from(Array(size).keys()).
     map((i) => `<div style='width: ${SIZE.W}px; height: 40px; background: ${i % 2 ? 'yellow' : 'green'};'>${i}</div>`).
@@ -556,6 +559,39 @@ describe('EffSZ:', () => {
         test('toggle:', async () => {
             await container.toggle();
             expect(container.isOpen).toBeTruthy();
+        });
+
+        test('swipe:', async () => {
+            const swipeDist = 40;
+            container.setAttribute('swipe', swipeDist + '');
+            const touchStart = new Touch({
+                identifier: 1,
+                target: container,
+                clientX: document.body.clientWidth / 2,
+                clientY: document.body.clientHeight / 2
+            });
+            const touchMove = new Touch({
+                identifier: 1,
+                target: container,
+                clientX: document.body.clientWidth / 2 - (swipeDist + 1),
+                clientY: document.body.clientHeight / 2
+            });
+            const touchStartEvent = new TouchEvent('touchstart', {
+                touches: [touchStart],
+                view: window,
+                cancelable: true,
+                bubbles: true,
+            });
+            const touchMoveEvent = new TouchEvent('touchmove', {
+                touches: [touchMove],
+                view: window,
+                cancelable: true,
+                bubbles: true,
+            });
+            container.dialog.dispatchEvent(touchStartEvent);
+            container.dialog.dispatchEvent(touchMoveEvent);
+            await timeout();
+            expect(container.isOpen).toBeFalsy();
         });
     })
 });

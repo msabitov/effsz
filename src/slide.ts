@@ -32,7 +32,7 @@ export interface ISlideContainerAttrs {
     /**
      * Is slide container modal
      */
-    modal: string;
+    modal: boolean;
     /**
      * Position
      */
@@ -45,6 +45,12 @@ export interface ISlideContainerAttrs {
      * Backdrop blur coef
      */
     blur: number;
+    /**
+     * Swipe distance in px to close container
+     * @description
+     * `30` by default. If equals `0` then container won`t close
+     */
+    swipe: number;
 
 
     // transition
@@ -113,6 +119,9 @@ const DIALOG = 'dialog';
 const DIALOG_ID = '#' + DIALOG;
 const PADDING = 'padding';
 const CLICK = 'click';
+const TOUCH_START = 'touchstart';
+const TOUCH_END = 'touchend';
+const TOUCH_MOVE = 'touchmove';
 const BG = 'background';
 const POSITION = 'position';
 const NONE = 'none';
@@ -307,9 +316,54 @@ export const useSlide: TUseSlide = () => {
                     if (this.isOpen && (y > rect.bottom || y < rect.top || x > rect.right || x < rect.left)) this.close();
                 };
                 this.dialog.addEventListener(CLICK, clickHandler);
+                let touchPrev: number| null = null;
+                let dist: number = 30;
+                const touchEndHandler = () => {
+                    touchPrev = null;
+                    this.dialog.removeEventListener(TOUCH_MOVE, touchMoveHandler);
+                    this.dialog.removeEventListener(TOUCH_END, touchEndHandler);
+                };
+                const touchMoveHandler = (e: TouchEvent) => {
+                    if (touchPrev === null) return;
+                    const pos = this.getAttribute('pos') || 'l';
+                    const firstTouch = e.touches[0];
+                    let isOver = false;
+                    switch (pos) {
+                        case 't':
+                            isOver = (firstTouch.clientY < touchPrev) && (touchPrev - firstTouch.clientY) > dist;
+                            break;
+                        case 'b':
+                            isOver = (firstTouch.clientY > touchPrev) && (firstTouch.clientY - touchPrev) > dist;
+                            break;
+                        case 'r':
+                            isOver = (firstTouch.clientX > touchPrev) && (firstTouch.clientY - touchPrev) > dist;
+                            break;
+                        default:
+                            isOver = (firstTouch.clientX < touchPrev) && (touchPrev - firstTouch.clientX) > dist;
+                            break;
+                    }
+                    if (isOver) {
+                        touchEndHandler();
+                        this.close();
+                    }
+                };
+                const touchStartHandler = (e: TouchEvent) => {
+                    const swipeDist = Number(this.getAttribute('swipe') || '30');
+                    if (swipeDist === 0) return;
+                    else dist = swipeDist;
+                    const firstTouch = e.touches[0];
+                    const pos = this.getAttribute('pos') || 'l';
+                    if (pos === 't' || pos === 'b') touchPrev = firstTouch.clientY;
+                    else touchPrev = firstTouch.clientX;                                      
+                    this.dialog.addEventListener(TOUCH_MOVE, touchMoveHandler);
+                    this.dialog.addEventListener(TOUCH_END, touchEndHandler);
+                };
+                this.dialog.addEventListener(TOUCH_START, touchStartHandler);
                 this.disconnectedCallback = () => {
                     this.dialog.removeEventListener(CLICK, clickHandler);
-                }
+                    this.dialog.removeEventListener(TOUCH_START, touchStartHandler);
+                    touchEndHandler();
+                };
             }
 
             attributeChangedCallback(name: typeof OBSERVED_ATTRS_KEYS[number], _: string, newValue: string) {
