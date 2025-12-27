@@ -535,6 +535,78 @@ describe('EffSZ:', () => {
             await container.prev();
             expect(container.active).toBe(3);
         });
+
+        test('swipe to prev:', async () => {
+            const swipeDist = 40;
+            container.setAttribute('swipe', swipeDist + '');
+            const rect = container.getBoundingClientRect();
+            const touchStart = new Touch({
+                identifier: 1,
+                target: container,
+                clientX: rect.left + rect.width / 2,
+                clientY: rect.top + rect.height / 2
+            });
+            const touchMove = new Touch({
+                identifier: 1,
+                target: container,
+                clientX: rect.left + rect.width / 2 + (swipeDist + 1),
+                clientY: rect.top + rect.height / 2
+            });
+            const touchStartEvent = new TouchEvent('touchstart', {
+                touches: [touchStart],
+                view: window,
+                cancelable: true,
+                bubbles: true,
+            });
+            const touchMoveEvent = new TouchEvent('touchmove', {
+                touches: [touchMove],
+                view: window,
+                cancelable: true,
+                bubbles: true,
+            });
+            const current = container.active || 0;
+            container.dispatchEvent(touchStartEvent);
+            container.dispatchEvent(touchMoveEvent);
+            
+            await timeout();
+            expect(container.active).toBe(current - 1);
+        });
+
+        test('swipe to next:', async () => {
+            const swipeDist = 40;
+            container.setAttribute('swipe', swipeDist + '');
+            const rect = container.getBoundingClientRect();
+            const touchStart = new Touch({
+                identifier: 1,
+                target: container,
+                clientX: rect.left + rect.width / 2,
+                clientY: rect.top + rect.height / 2
+            });
+            const touchMove = new Touch({
+                identifier: 1,
+                target: container,
+                clientX: rect.left + rect.width / 2 - (swipeDist + 1),
+                clientY: rect.top + rect.height / 2
+            });
+            const touchStartEvent = new TouchEvent('touchstart', {
+                touches: [touchStart],
+                view: window,
+                cancelable: true,
+                bubbles: true,
+            });
+            const touchMoveEvent = new TouchEvent('touchmove', {
+                touches: [touchMove],
+                view: window,
+                cancelable: true,
+                bubbles: true,
+            });
+            const current = container.active || 0;
+            container.dispatchEvent(touchStartEvent);
+            container.dispatchEvent(touchMoveEvent);
+            
+            await timeout();
+            expect(container.active).toBe(current + 1);
+        });
     });
 
     describe('effsz-slide:', () => {

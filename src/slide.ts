@@ -122,6 +122,7 @@ const CLICK = 'click';
 const TOUCH_START = 'touchstart';
 const TOUCH_END = 'touchend';
 const TOUCH_MOVE = 'touchmove';
+const TOUCH_CANCEL = 'touchcancel';
 const BG = 'background';
 const POSITION = 'position';
 const NONE = 'none';
@@ -318,11 +319,6 @@ export const useSlide: TUseSlide = () => {
                 this.dialog.addEventListener(CLICK, clickHandler);
                 let touchPrev: number| null = null;
                 let dist: number = 30;
-                const touchEndHandler = () => {
-                    touchPrev = null;
-                    this.dialog.removeEventListener(TOUCH_MOVE, touchMoveHandler);
-                    this.dialog.removeEventListener(TOUCH_END, touchEndHandler);
-                };
                 const touchMoveHandler = (e: TouchEvent) => {
                     if (touchPrev === null) return;
                     const pos = this.getAttribute('pos') || 'l';
@@ -336,16 +332,22 @@ export const useSlide: TUseSlide = () => {
                             isOver = (firstTouch.clientY > touchPrev) && (firstTouch.clientY - touchPrev) > dist;
                             break;
                         case 'r':
-                            isOver = (firstTouch.clientX > touchPrev) && (firstTouch.clientY - touchPrev) > dist;
+                            isOver = (firstTouch.clientX > touchPrev) && (firstTouch.clientX - touchPrev) > dist;
                             break;
                         default:
                             isOver = (firstTouch.clientX < touchPrev) && (touchPrev - firstTouch.clientX) > dist;
                             break;
                     }
                     if (isOver) {
-                        touchEndHandler();
+                        this.dialog.removeEventListener(TOUCH_MOVE, touchMoveHandler);
                         this.close();
                     }
+                };
+                const touchEndHandler = () => {
+                    touchPrev = null;
+                    this.dialog.removeEventListener(TOUCH_MOVE, touchMoveHandler);
+                    this.dialog.removeEventListener(TOUCH_END, touchEndHandler);
+                    this.dialog.removeEventListener(TOUCH_CANCEL, touchEndHandler);
                 };
                 const touchStartHandler = (e: TouchEvent) => {
                     const swipeDist = Number(this.getAttribute('swipe') || '30');
@@ -357,6 +359,7 @@ export const useSlide: TUseSlide = () => {
                     else touchPrev = firstTouch.clientX;                                      
                     this.dialog.addEventListener(TOUCH_MOVE, touchMoveHandler);
                     this.dialog.addEventListener(TOUCH_END, touchEndHandler);
+                    this.dialog.addEventListener(TOUCH_CANCEL, touchEndHandler);
                 };
                 this.dialog.addEventListener(TOUCH_START, touchStartHandler);
                 this.disconnectedCallback = () => {

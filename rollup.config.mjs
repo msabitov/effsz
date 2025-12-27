@@ -25,54 +25,14 @@ const plugins = [
     tsPlugin
 ];
 
-export default [
-    {
-        input: {
-            split: 'src/split.ts'
-        },
-        output,
-        plugins
-    },
-    {
-        input: {
-            limit: 'src/limit.ts'
-        },
-        output,
-        plugins
-    },
-    {
-        input: {
-            scroll: 'src/scroll.ts'
-        },
-        output,
-        plugins
-    },
-    {
-        input: {
-            masonry: 'src/masonry.ts'
-        },
-        output,
-        plugins
-    },
-    {
-        input: {
-            expand: 'src/expand.ts'
-        },
-        output,
-        plugins
-    },
-    {
-        input: {
-            carousel: 'src/carousel.ts'
-        },
-        output,
-        plugins
-    },
-    {
-        input: {
-            slide: 'src/slide.ts'
-        },
-        output,
-        plugins
-    }
+const inputs = [
+    'split', 'limit', 'scroll', 'masonry', 'expand', 'carousel', 'slide'
 ];
+
+export default inputs.map((name) => ({
+    input: {
+        [name]: `src/${name}.ts`
+    },
+    output,
+    plugins
+}));

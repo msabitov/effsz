@@ -48,6 +48,12 @@ export interface ICarouselContainerAttrs {
      */
     type: 'slide' | 'fade';
     /**
+     * Swipe distance in px to show prev/next item
+     * @description
+     * `30` by default. If equals `0` then container won't use swipe actions
+     */
+    swipe: number;
+    /**
      * Carousel animation timing-function
      */
     tf: string;
@@ -124,6 +130,10 @@ const UNSET = 'unset';
 const CENTER = 'center';
 const ME = 'mouseenter';
 const ML = 'mouseleave';
+const TOUCH_START = 'touchstart';
+const TOUCH_END = 'touchend';
+const TOUCH_MOVE = 'touchmove';
+const TOUCH_CANCEL = 'touchcancel';
 const CLICK = 'click';
 const AFT_CLS = '.after';
 const BEF_CLS = '.before';
@@ -354,9 +364,62 @@ export const useCarousel: TUseCarousel = () => {
                 
                 this.addEventListener(ME, onMouseEnter);
                 this.addEventListener(ML, onMouseLeave);
+                let touchPrev: number| null = null;
+                let dist: number = 30;
+                const touchMoveHandler = (e: TouchEvent) => {
+                    if (touchPrev === null) return;
+                    const axis = this.getAttribute(AXIS_ATTR);
+                    const firstTouch = e.touches[0];
+                    let isOver = false;
+                    switch (axis) {
+                        case 'y':
+                            if((firstTouch.clientY < touchPrev) && (touchPrev - firstTouch.clientY) > dist) {
+                                isOver = true;
+                                this.next();
+                            } else if ((firstTouch.clientY > touchPrev) && (firstTouch.clientY - touchPrev) > dist) {
+                                isOver = true;
+                                this.prev();
+                            }
+                            break;
+                        default:
+                            if((firstTouch.clientX < touchPrev) && (touchPrev - firstTouch.clientX) > dist) {
+                                isOver = true;
+                                this.next();
+                            } else if ((firstTouch.clientX > touchPrev) && (firstTouch.clientX - touchPrev) > dist) {
+                                isOver = true;
+                                this.prev();
+                            }
+                            break;
+                    }
+                    if (isOver) {
+                        this.removeEventListener(TOUCH_MOVE, touchMoveHandler);
+                        touchPrev = null;
+                    }
+                };
+                const touchEndHandler = () => {
+                    touchPrev = null;
+                    this.removeEventListener(TOUCH_MOVE, touchMoveHandler);
+                    this.removeEventListener(TOUCH_END, touchEndHandler);
+                    this.removeEventListener(TOUCH_CANCEL, touchEndHandler);
+                };
+                const touchStartHandler = (e: TouchEvent) => {
+                    const swipeDist = Number(this.getAttribute('swipe') || '30');
+                    if (swipeDist === 0) return;
+                    else dist = swipeDist;
+                    const firstTouch = e.touches[0];
+                    const axis = this.getAttribute(AXIS_ATTR) || 'x';
+                    if (axis === 'y') touchPrev = firstTouch.clientY;
+                    else touchPrev = firstTouch.clientX;                                      
+                    this.addEventListener(TOUCH_MOVE, touchMoveHandler);
+                    this.addEventListener(TOUCH_END, touchEndHandler);
+                    this.addEventListener(TOUCH_CANCEL, touchEndHandler);
+                };
+                this.addEventListener(TOUCH_START, touchStartHandler);
                 this.disconnectedCallback = () => {
                     this.removeEventListener(ME, onMouseEnter);
                     this.removeEventListener(ML, onMouseLeave);
+                    this.removeEventListener(TOUCH_START, touchStartHandler);
+                    touchEndHandler();
                     before?.removeEventListener(CLICK, this.prev);
                     after?.removeEventListener(CLICK, this.next);
                 }
