@@ -172,7 +172,7 @@ describe('EffSZ:', () => {
                 </div>
             </effsz-split>
         </effsz-split>
-        <effsz-carousel id="${ID.carousel}" ini="${carouselIni}" type="slide" class='carousel'>
+        <effsz-carousel id="${ID.carousel}" ini="${carouselIni}" type="flip" class='carousel'>
             <div slot='bef'>bef</div>
             <div slot='aft'>aft</div>
             <div style='background: red;'><div style="font-size: 32px;margin: auto;justify-self: center;">1 item</div></div>

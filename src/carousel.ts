@@ -46,7 +46,7 @@ export interface ICarouselContainerAttrs {
     /**
      * Carousel animation type
      */
-    type: 'slide' | 'fade';
+    type: 'slide' | 'fade' | 'flip';
     /**
      * Swipe distance in px to show prev/next item
      * @description
@@ -139,6 +139,9 @@ const AFT_CLS = '.after';
 const BEF_CLS = '.before';
 const CNT_CLS = '.content';
 const CTRL_CLS = '.control';
+const PERSPECTIVE = 'perspective';
+const TYPE_FLIP = '[type=flip]';
+const TYPE_FLIP_ATTR = `(${TYPE_FLIP})`;
 const clsVal = (val: string) => val.slice(1);
 const {
     addListener,
@@ -153,7 +156,7 @@ const {
 const RULES = [
     ruleByPropVals(HOST,
         [DISPLAY, BLOCK],
-        ['container', 'inline-size'],
+        ['container', 'size'],
         [POSITION, 'relative'],
         [WIDTH, FULL],
         [HEIGHT, FULL],
@@ -161,6 +164,9 @@ const RULES = [
         [varName('x'), 1],
         [varName('y'), 0]
     ),
+    ruleByPropVals(HOST + TYPE_FLIP_ATTR, [PERSPECTIVE, '800cqw']),
+    ruleByPropVals(HOST + `([axis=y]${TYPE_FLIP})`, [PERSPECTIVE, '800cqh']),
+    ruleByPropVals(HOST + TYPE_FLIP_ATTR + ` ::slotted(*:not([slot]))`, ['backface-visibility', 'hidden']),
     ruleByPropVals(HOST_Y,
         [varName('x'), 0],
         [varName('y'), 1]
@@ -284,6 +290,44 @@ const ANIMATIONS = {
             current: [{
                 opacity: 1
             }, {
+                opacity: 0
+            }]
+        }
+    },
+    flip: {
+        init: [{
+            rotate: `${varExp(['y'], 0)} ${varExp(['x'], 0)} 0 0deg`,
+            opacity: 1
+        }],
+        forward: {
+            next: [{
+                rotate: `${varExp(['y'], 0)} ${varExp(['x'], 0)} 0 180deg`,
+                opacity: 0
+            }, {
+                rotate: `${varExp(['y'], 0)} ${varExp(['x'], 0)} 0 0deg`,
+                opacity: 1
+            }],
+            current: [{
+                rotate: `${varExp(['y'], 0)} ${varExp(['x'], 0)} 0 0deg`,
+                opacity: 1
+            }, {
+                rotate: `${varExp(['y'], 0)} ${varExp(['x'], 0)} 0 -180deg`,
+                opacity: 0
+            }]
+        },
+        backward: {
+            next: [{
+                rotate: `${varExp(['y'], 0)} ${varExp(['x'], 0)} 0 -180deg`,
+                opacity: 0
+            }, {
+                rotate: `${varExp(['y'], 0)} ${varExp(['x'], 0)} 0 0deg`,
+                opacity: 1
+            }],
+            current: [{
+                rotate: `${varExp(['y'], 0)} ${varExp(['x'], 0)} 0 0deg`,
+                opacity: 1
+            }, {
+                rotate: `${varExp(['y'], 0)} ${varExp(['x'], 0)} 0 180deg`,
                 opacity: 0
             }]
         }
@@ -434,8 +478,10 @@ export const useCarousel: TUseCarousel = () => {
                 if (next >= count) next = next - count;
                 else if (next < 0) next = next + count;
                 if (next === this.active) return;
+                const durAttrVal = this.getAttribute(DUR_ATTR);
+                const duration = durAttrVal ? Number(durAttrVal) : 300;
                 const options: KeyframeAnimationOptions = {
-                    duration: this.getAttribute(DUR_ATTR) || 300,
+                    duration,
                     iterations: 1,
                     fill: 'both',
                     easing: this.getAttribute(TF_ATTR) || 'linear'
