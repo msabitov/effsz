@@ -3,12 +3,14 @@ import {
     ruleByPropVals, space, color, resolveModule
 } from './common';
 
+type TAxis = 'x' | 'y';
+
 /**
  * Scroll container
  */
 export interface IScrollContainerElement extends HTMLElement {
-    get axis(): 'x' | 'y';
-    set axis(val: 'x' | 'y');
+    get axis(): TAxis;
+    set axis(val: TAxis);
     /**
      * Main axis size
      */
@@ -59,7 +61,7 @@ export interface IScrollContainerElement extends HTMLElement {
  * Scroll container attributes
  */
 export interface IScrollContainerAttrs {
-    axis: 'x' | 'y';
+    axis: TAxis;
     /**
      * Thumb size
      */
@@ -277,12 +279,18 @@ const INNER_PROPERTIES = {
 };
 
 const BLUR = `calc(var(${varName(...PROPERTIES.shsize)}) * 5)`;
+const wrapAttr = (val: string) => `([${val}])`;
 const CONTENT_SELECTOR = '#content';
 const BAR_SELECTOR = '#scrollbar';
 const THUMB_SELECTOR = '#thumb';
 const HOST = ':host';
-const HOST_X = HOST + '([axis=x])';
-const HOST_Y = HOST + '([axis=y])';
+const AXIS = 'axis';
+const SIDE_EQ = 'side=';
+const START = 'start';
+const ACTIVE = 'active';
+const DISABLED_ATTR = '([disabled])';
+const HOST_X = HOST + wrapAttr(AXIS + '=x');
+const HOST_Y = HOST + wrapAttr(AXIS + '=y');
 
 const RULES = [
     // host
@@ -318,7 +326,7 @@ const RULES = [
     ruleByPropVals(space(HOST_Y, CONTENT_SELECTOR), FLEX_COL, [
         OVERFLOW, space(HIDDEN, SCROLL)
     ]),
-    ruleByPropVals(HOST + '([disabled]) ' + CONTENT_SELECTOR, [
+    ruleByPropVals(HOST + DISABLED_ATTR + ' ' + CONTENT_SELECTOR, [
         OVERFLOW, HIDDEN
     ]),
     // shadows
@@ -358,7 +366,7 @@ const RULES = [
     ]),
     // scrollbar
     ruleByPropVals(BAR_SELECTOR, DIS_FLEX, FLEX_COL,
-        [INL_END, 0], [INL_START, INH], ['inset-block-start', 0],[
+        [INL_END, 0], [INL_START, INH], ['inset-block-' + START, 0],[
         BLOCK_SIZE, FULL
     ], [
         INLINE_SIZE, 0
@@ -367,28 +375,28 @@ const RULES = [
     ], [
         TRANSITION, space(INLINE_SIZE, varExp(PROPERTIES.sbdur), varExp(PROPERTIES.sbtf))
     ]),
-    ruleByPropVals(HOST + '([side=start]) ' + BAR_SELECTOR, [
+    ruleByPropVals(HOST + wrapAttr(SIDE_EQ + START) + ' ' + BAR_SELECTOR, [
         INL_START, 0
     ], [
         INL_END, INH
     ]),
-    ruleByPropVals(HOST + '([side=end]) ' + BAR_SELECTOR, [
+    ruleByPropVals(HOST + wrapAttr(SIDE_EQ + 'end') + ' ' + BAR_SELECTOR, [
         INL_START, INH
     ], [
         INL_END, 0
     ]),
     ruleByPropVals(space(HOST_X, BAR_SELECTOR), FLEX_ROW, WR_MODE_V),
-    ruleByPropVals(`:host(:hover) ${BAR_SELECTOR}, ${BAR_SELECTOR}[active], :host([vis=always]) ${BAR_SELECTOR}`, [
+    ruleByPropVals(HOST + `(:hover) ${BAR_SELECTOR}, ${BAR_SELECTOR}[${ACTIVE}], :host([vis=always]) ${BAR_SELECTOR}`, [
         INLINE_SIZE, `calc(min(${varExp(INNER_PROPERTIES.bef)} + ${varExp(INNER_PROPERTIES.aft)}, 1) * ${varExp(PROPERTIES.thsize)})`
     ]),
-    ruleByPropVals(`:host([vis=hidden]) ${BAR_SELECTOR},:host([vis=hidden]:hover) ${BAR_SELECTOR}, :host([disabled]) ${BAR_SELECTOR}`, [
+    ruleByPropVals(`:host([vis=hidden]) ${BAR_SELECTOR},:host([vis=hidden]:hover) ${BAR_SELECTOR}, ${HOST + DISABLED_ATTR} ${BAR_SELECTOR}`, [
         INLINE_SIZE, 0
     ]),
     // thumb
     ruleByPropVals(THUMB_SELECTOR, [
         BLOCK_SIZE, varExp(INNER_PROPERTIES.len)
     ], [
-        'margin-block-start', varExp(INNER_PROPERTIES.off)
+        'margin-block-' + START, varExp(INNER_PROPERTIES.off)
     ], [
         BGC, varExp(PROPERTIES.thcolor)
     ], [
@@ -404,7 +412,7 @@ const RULES = [
 ];
 
 const listen = (thumb: HTMLElement) => {
-    let axis: 'x' | 'y';
+    let axis: TAxis;
     let root: HTMLElement;
     let offset: number;
     let startPoint: number;
@@ -433,7 +441,7 @@ const listen = (thumb: HTMLElement) => {
     const onEnd = (event: MouseEvent | TouchEvent) => {
         event[PREV_DEF]?.();
         event[STOP_PROP]();
-        thumb.parentElement?.removeAttribute('active');
+        thumb.parentElement?.removeAttribute(ACTIVE);
         const remove = document[REM_EL];
         if (event.type === TOUCH_END) {
             remove(TOUCH_MOVE, onMove);
@@ -458,7 +466,7 @@ const listen = (thumb: HTMLElement) => {
         event[PREV_DEF]?.();
         const target = event.target as IScrollContainerElement;
         root = thumb.parentElement?.parentElement as HTMLElement;
-        thumb.parentElement?.setAttribute('active', '');
+        thumb.parentElement?.setAttribute(ACTIVE, '');
         axis = target.axis;
         offset = root[PARAMS[axis].offset];
         if (event.type === TOUCH_START) startPoint = (event as TouchEvent).touches[0][PARAMS[axis].val];
@@ -529,11 +537,11 @@ export const useScroll: TUseScroll = () => {
             static observedAttributes = OBSERVED_ATTRS;
 
             get axis() {
-                return (this.getAttribute('axis') || 'y') as IScrollContainerElement['axis'];
+                return (this.getAttribute(AXIS) || 'y') as TAxis;
             }
 
-            set axis(val: 'x' | 'y') {
-                this.setAttribute('axis', val);
+            set axis(val: TAxis) {
+                this.setAttribute(AXIS, val);
             }
 
             get _scrollContent(): HTMLDivElement {

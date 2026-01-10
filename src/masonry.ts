@@ -1,12 +1,13 @@
 import { resolveModule, ruleByPropVals, space } from "./common";
 
+type TAxis = 'x' | 'y';
 
 /**
  * Masonry container
  */
 export interface IMasonryContainerElement extends HTMLElement {
-    get axis(): 'x' | 'y';
-    set axis(val: 'x' | 'y');
+    get axis(): TAxis;
+    set axis(val: TAxis);
     get layout(): Record<number, number[]>;
 }
 
@@ -76,8 +77,9 @@ const HEIGHT = 'height';
 const DISPLAY = 'display';
 const FLEX = 'flex';
 const GRID = 'grid';
-const GTR = 'grid-template-rows';
-const GTC = 'grid-template-columns';
+const GT_ = 'grid-template-';
+const GTR = GT_ + 'rows';
+const GTC = GT_ + 'columns';;
 const FULL_W = [WIDTH, FULL];
 const FULL_H = [HEIGHT, FULL];
 const AUTO_W = [WIDTH, AUTO];
@@ -156,10 +158,10 @@ export const useMasonry: TUseMasonry = () => {
             protected _layout: Record<number, number[]> = {};
 
             get axis() {
-                return (this.getAttribute('axis') || 'y') as IMasonryContainerElement['axis'];
+                return (this.getAttribute('axis') || 'y') as TAxis;
             }
 
-            set axis(val: 'x' | 'y') {
+            set axis(val: TAxis) {
                 if (val === 'x' || val === 'y') this.setAttribute(ATTRS.axis, val);
             }
 

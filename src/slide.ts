@@ -323,19 +323,21 @@ export const useSlide: TUseSlide = () => {
                     if (touchPrev === null) return;
                     const pos = this.getAttribute('pos') || 'l';
                     const firstTouch = e.touches[0];
+                    const touchY = firstTouch.clientY;
+                    const touchX = firstTouch.clientX;
                     let isOver = false;
                     switch (pos) {
                         case 't':
-                            isOver = (firstTouch.clientY < touchPrev) && (touchPrev - firstTouch.clientY) > dist;
+                            isOver = (touchY < touchPrev) && (touchPrev - touchY) > dist;
                             break;
                         case 'b':
-                            isOver = (firstTouch.clientY > touchPrev) && (firstTouch.clientY - touchPrev) > dist;
+                            isOver = (touchY > touchPrev) && (touchY - touchPrev) > dist;
                             break;
                         case 'r':
-                            isOver = (firstTouch.clientX > touchPrev) && (firstTouch.clientX - touchPrev) > dist;
+                            isOver = (touchX > touchPrev) && (touchX - touchPrev) > dist;
                             break;
                         default:
-                            isOver = (firstTouch.clientX < touchPrev) && (touchPrev - firstTouch.clientX) > dist;
+                            isOver = (touchX < touchPrev) && (touchPrev - touchX) > dist;
                             break;
                     }
                     if (isOver) {

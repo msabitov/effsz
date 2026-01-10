@@ -68,6 +68,14 @@ const FULL = '100%';
 const FIT_CONTENT = 'fit-content';
 const HOST = ':host';
 const OVERFLOW = 'overflow';
+const END = 'end';
+const HASH = '#';
+const INNER = 'inner';
+const OUTER = 'outer';
+const END_ID = HASH + END;
+const INNER_ID = HASH + INNER;
+const OUTER_ID = HASH + OUTER;
+const fdirAttr = (val: string) => HOST + `([fdir=${val}])`;
 const HEIGHT_FULL = [HEIGHT, FULL] as [string, string];
 const OVER_H = [
     OVERFLOW, HIDDEN
@@ -88,13 +96,13 @@ const RULES = [
     ruleByPropVals(HOST,
         OVER_H, [DISPLAY, 'flex'], ['position', 'relative'], DIR_FDIR, [WIDTH, FULL], [HEIGHT, AUTO]
     ),
-    ruleByPropVals(':host([fdir=r])', [varName(FDIR), ROW]),
-    ruleByPropVals(':host([fdir=rr])', [varName(FDIR), ROW + _REVERSE]),
-    ruleByPropVals(':host([fdir=c])', [varName(FDIR), COLUMN], HEIGHT_FULL, [WIDTH, AUTO]),
-    ruleByPropVals(':host([fdir=cr])', [varName(FDIR), COLUMN + _REVERSE], [HEIGHT, FULL], [WIDTH, AUTO]),
-    ruleByPropVals('#outer', OVER_H, DIS_F, DIR_FDIR),
-    ruleByPropVals('#inner', DIS_IF, DIR_FDIR, [GAP, `calc(1px * ${varExp([GAP])})`]),
-    ruleByPropVals('#end', DIS_IF, DIR_FDIR, [FLEX_BASIS, 0], OVER_H, PE_N, [MIN_ + WIDTH, FIT_CONTENT]),
+    ruleByPropVals(HOST + fdirAttr('r'), [varName(FDIR), ROW]),
+    ruleByPropVals(HOST + fdirAttr('rr'), [varName(FDIR), ROW + _REVERSE]),
+    ruleByPropVals(HOST + fdirAttr('c'), [varName(FDIR), COLUMN], HEIGHT_FULL, [WIDTH, AUTO]),
+    ruleByPropVals(HOST + fdirAttr('cr'), [varName(FDIR), COLUMN + _REVERSE], [HEIGHT, FULL], [WIDTH, AUTO]),
+    ruleByPropVals(OUTER_ID, OVER_H, DIS_F, DIR_FDIR),
+    ruleByPropVals(INNER_ID, DIS_IF, DIR_FDIR, [GAP, `calc(1px * ${varExp([GAP])})`]),
+    ruleByPropVals(END_ID, DIS_IF, DIR_FDIR, [FLEX_BASIS, 0], OVER_H, PE_N, [MIN_ + WIDTH, FIT_CONTENT]),
     ruleByPropVals('::slotted(*)', OVER_H, ['flex', '0 0 auto']) 
 ];
 
@@ -148,7 +156,7 @@ export const useLimit: TUseLimit = () => {
             }
 
             get isLimited() {
-                const slot = (this.shadowRoot as any)?.getElementById('inner').firstElementChild as HTMLSlotElement;
+                const slot = (this.shadowRoot as any)?.getElementById(INNER).firstElementChild as HTMLSlotElement;
                 return slot.assignedElements().length > this.limitCount;
             }
 
@@ -158,7 +166,7 @@ export const useLimit: TUseLimit = () => {
 
             connectedCallback() {
                 const shadowRoot = this.attachShadow({ mode: 'open' });
-                shadowRoot.innerHTML = `<div id='start'></div><div id='outer'><div id='inner'><slot></slot></div></div><div id='end'><slot name='limit'></slot></div>`;
+                shadowRoot.innerHTML = `<div id='start'></div><div id='${OUTER}'><div id='${INNER}'><slot></slot></div></div><div id='${END}'><slot name='limit'></slot></div>`;
                 shadowRoot.adoptedStyleSheets = [
                     getStyleSheet(RULES),
                     new CSSStyleSheet()
@@ -217,7 +225,7 @@ export const useLimit: TUseLimit = () => {
                     }
                 }
                 if (sum < size) {
-                    this.shadowRoot?.adoptedStyleSheets[1].replaceSync( ruleByPropVals('#end', [MIN_ + WIDTH, 0], [MIN_ + HEIGHT, 0]));
+                    this.shadowRoot?.adoptedStyleSheets[1].replaceSync( ruleByPropVals(END_ID, [MIN_ + WIDTH, 0], [MIN_ + HEIGHT, 0]));
                     if (children.length !== this._state.limit) {
                         this._state.limit = children.length;
                     }
@@ -238,7 +246,7 @@ export const useLimit: TUseLimit = () => {
                         [VISIBILITY, HIDDEN],
                         PE_N
                     ),
-                    ruleByPropVals('#end',
+                    ruleByPropVals(END_ID,
                         [FLEX_BASIS, AUTO],
                         [VISIBILITY, VISIBLE],
                         [POINTER_EVENTS, AUTO],

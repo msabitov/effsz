@@ -139,10 +139,14 @@ const AFT_CLS = '.after';
 const BEF_CLS = '.before';
 const CNT_CLS = '.content';
 const CTRL_CLS = '.control';
+const SLOT = 'slot';
+const SLOTTED_NOT_SLOT = '::slotted(*:not([slot]))';
+const HIDDEN = 'hidden';
 const PERSPECTIVE = 'perspective';
 const TYPE_FLIP = '[type=flip]';
 const TYPE_FLIP_ATTR = `(${TYPE_FLIP})`;
 const clsVal = (val: string) => val.slice(1);
+const oklchAlpha = (alpha: number) => `oklch(from currentColor l c h / ${alpha})`;
 const {
     addListener,
     removeListener,
@@ -152,21 +156,31 @@ const {
     varExp,
     getStyleSheet
 } = resolveModule(MODULE);
+const POS_ABS = [POSITION, 'absolute'];
+const H_FULL = [HEIGHT, FULL];
+const W_FULL = [WIDTH, FULL];
+const W_UNSET = [WIDTH, UNSET];
+const R_0 = [RIGHT, 0];
+const L_0 = [LEFT, 0];
+const T_0 = [TOP, 0];
+const B_0 = [BOTTOM, 0];
+const MIN_H = 'min(2.5rem, 10cqh)';
+const MIN_W = 'min(2.5rem, 10cqw)';
 
 const RULES = [
     ruleByPropVals(HOST,
         [DISPLAY, BLOCK],
         ['container', 'size'],
         [POSITION, 'relative'],
-        [WIDTH, FULL],
-        [HEIGHT, FULL],
-        ['overflow', 'hidden'],
+        W_FULL,
+        H_FULL,
+        ['overflow', HIDDEN],
         [varName('x'), 1],
         [varName('y'), 0]
     ),
     ruleByPropVals(HOST + TYPE_FLIP_ATTR, [PERSPECTIVE, '800cqw']),
     ruleByPropVals(HOST + `([axis=y]${TYPE_FLIP})`, [PERSPECTIVE, '800cqh']),
-    ruleByPropVals(HOST + TYPE_FLIP_ATTR + ` ::slotted(*:not([slot]))`, ['backface-visibility', 'hidden']),
+    ruleByPropVals(HOST + TYPE_FLIP_ATTR + ' ' + SLOTTED_NOT_SLOT, ['backface-visibility', HIDDEN]),
     ruleByPropVals(HOST_Y,
         [varName('x'), 0],
         [varName('y'), 1]
@@ -174,18 +188,18 @@ const RULES = [
     ruleByPropVals(CNT_CLS,
         [DISPLAY, 'contents']
     ),
-    ruleByPropVals('::slotted(*:not([slot]))',
-        [POSITION, 'absolute'],
+    ruleByPropVals(SLOTTED_NOT_SLOT,
+        POS_ABS,
         [LEFT, 0],
         [TOP, 0],
         [DISPLAY, NONE],
-        [HEIGHT, FULL],
-        [WIDTH, FULL]
+        H_FULL,
+        W_FULL
     ),
     ruleByPropVals(CTRL_CLS,
-        [HEIGHT, FULL],
-        [BG, 'oklch(from currentColor l c h / 0.15)'],
-        [POSITION, 'absolute'],
+        H_FULL,
+        [BG, oklchAlpha(0.15)],
+        POS_ABS,
         ['cursor', 'pointer'],
         [DISPLAY, FLEX],
         ['align-items', CENTER],
@@ -193,41 +207,41 @@ const RULES = [
         [FDIR, 'column'],
         ['transition', BG + ' 200ms linear 0s']
     ),
-    ruleByPropVals('.control:hover',
-        [BG, 'oklch(from currentColor l c h / 0.3)']
+    ruleByPropVals(CTRL_CLS + ':hover',
+        [BG, oklchAlpha(0.3)]
     ),
     ruleByPropVals(space(HOST_Y, CTRL_CLS),
-        [WIDTH, FULL],
+        W_FULL,
         [FDIR, 'row'],
     ),
     ruleByPropVals(BEF_CLS,
-        [WIDTH, varExp([BEF_ATTR], 'min(2.5rem, 10cqw)')],
-        [LEFT, 0],
-        [TOP, 0],
-        [BOTTOM, 0],
+        [WIDTH, varExp([BEF_ATTR], MIN_W)],
+        L_0,
+        T_0,
+        B_0,
         [RIGHT, UNSET],
     ),
     ruleByPropVals(space(HOST_Y, BEF_CLS),
-        [HEIGHT, varExp([BEF_ATTR], 'min(2.5rem, 10cqw)')],
-        [WIDTH, UNSET],
-        [LEFT, 0],
-        [TOP, 0],
-        [RIGHT, 0],
+        [HEIGHT, varExp([BEF_ATTR], MIN_H)],
+        W_UNSET,
+        L_0,
+        T_0,
+        R_0,
         [BOTTOM, UNSET],
     ),
     ruleByPropVals(AFT_CLS,
-        [WIDTH, varExp([AFT_ATTR] , 'min(2.5rem, 10cqw)')],
-        [RIGHT, 0],
-        [TOP, 0],
-        [BOTTOM, 0],
+        [WIDTH, varExp([AFT_ATTR] , MIN_W)],
+        R_0,
+        T_0,
+        B_0,
         [LEFT, UNSET],
     ),
     ruleByPropVals(space(HOST_Y, AFT_CLS),
-        [HEIGHT, varExp([AFT_ATTR], 'min(2.5rem, 10cqw)')],
-        [WIDTH, UNSET],
-        [LEFT, 0],
-        [BOTTOM, 0],
-        [RIGHT, 0],
+        [HEIGHT, varExp([AFT_ATTR], MIN_H)],
+        W_UNSET,
+        L_0,
+        B_0,
+        R_0,
         [TOP, UNSET],
     ),
 ];
@@ -378,13 +392,11 @@ export const useCarousel: TUseCarousel = () => {
 
             connectedCallback() {
                 const shadowRoot = this.attachShadow({ mode: 'open' });
-                shadowRoot.innerHTML = `
-                    <div class='${clsVal(CNT_CLS)}'>
-                        <slot></slot>
-                        <div class='${space(clsVal(CTRL_CLS), clsVal(BEF_CLS))}'><slot name='${BEF_ATTR}'></slot></div>
-                        <div class='${space(clsVal(CTRL_CLS), clsVal(AFT_CLS))}'><slot name='${AFT_ATTR}'></slot></div>
-                    </div>
-                `;
+                shadowRoot.innerHTML = `<div class='${clsVal(CNT_CLS)}'>` +
+                    `<slot></slot>` +
+                    `<div class='${space(clsVal(CTRL_CLS), clsVal(BEF_CLS))}'><slot name='${BEF_ATTR}'></slot></div>` +
+                    `<div class='${space(clsVal(CTRL_CLS), clsVal(AFT_CLS))}'><slot name='${AFT_ATTR}'></slot></div>` +
+                    `</div>`;
                 
                 const activeIndex = Number(this.getAttribute(INI_ATTR)) || 0;
                 const dynamicCSS = new CSSStyleSheet();
@@ -546,10 +558,11 @@ export const useCarousel: TUseCarousel = () => {
                         break;
                     case BEF_ATTR:
                     case AFT_ATTR:
-                        if (newValue) (this.shadowRoot?.children[0] as HTMLDivElement).style.setProperty(
+                        const style = (this.shadowRoot?.children[0] as HTMLDivElement).style;
+                        if (newValue) style?.setProperty(
                             varName(name), Number.isNaN(+newValue) ? newValue : newValue + 'px'
                         );
-                        else (this.shadowRoot?.children[0] as HTMLDivElement).style.removeProperty(varName(name));
+                        else style?.removeProperty(varName(name));
                         break;
                 }
             }

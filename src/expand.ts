@@ -1,12 +1,13 @@
 import { resolveModule, ruleByPropVals, space } from "./common";
 
+type TAxis = 'x' | 'y';
 
 /**
  * Expand container
  */
 export interface IExpandContainerElement extends HTMLElement {
-    get axis(): 'x' | 'y';
-    set axis(val: 'x' | 'y');
+    get axis(): TAxis;
+    set axis(val: TAxis);
     get isOpen(): boolean;
     get size(): number;
     /**
@@ -164,10 +165,10 @@ export const useExpand: TUseExpand = () => {
             }
 
             get axis() {
-                return (this.getAttribute(AXIS) || 'y') as IExpandContainerElement['axis'];
+                return (this.getAttribute(AXIS) || 'y') as TAxis;
             }
 
-            set axis(val: 'x' | 'y') {
+            set axis(val: TAxis) {
                 if (val === 'x' || val === 'y') this.setAttribute(AXIS, val);
             }
 

@@ -183,18 +183,21 @@ const ROWR = ROW + _REV;
 const HIDDEN = 'hidden';
 const GRID = 'grid';
 const ZERO_TIME = '0ms';
-const FDIR_C = 'fdir=c';
+const FDIR = 'fdir';
+const FDIR_C = FDIR + '=c';
 const FDIR_CR = FDIR_C + 'r';
-const FDIR_R = 'fdir=r';
+const FDIR_R = FDIR + '=r';
 const FDIR_RR = FDIR_R + 'r';
 const TRANSFORM = 'transform';
 const ZINDEX = 'z-index';
+const SLOTCHANGE = 'slotchange';
+const HOST = ':host';
 
 // css handlers
 const attrExp = (attr: string, val?: string | number | null) => `[${attr}${val ? '=' + val : ''}]`;
 const propVal = (prop: string, val: string | number) => prop + ':' + val + ';';
 const rule = (selector: string, content: string) => selector + `{${content}}`;
-const host = (...attrs: string[]) => ':host' + '(' + attrs.map(a=>`[${a}]`).join('') + ')';
+const host = (...attrs: string[]) => HOST + '(' + attrs.map(a=>`[${a}]`).join('') + ')';
 
 const VAL = varName('val');
 
@@ -209,7 +212,7 @@ const passiveColor = varExp([ATTRS.pcol], color(0.15));
 const colorDuration = varExp([ATTRS.cdur], '200ms');
 const RULES = [
     rule(`@property ${VAL}`,'syntax:"*";inherits:false;initial-value:1fr;'),
-    ruleByPropVals(':host',
+    ruleByPropVals(HOST,
         [DISPLAY, GRID],
         [OVERFLOW, HIDDEN]
     ),
@@ -311,10 +314,10 @@ const listen = (area: ISplitContainerElement) => {
         const nextSizeArray = [...sizeArray];
         const previous = nextSizeArray[index-1];
         const current = nextSizeArray[index];
-        const off = multiplier * Number(((currentPoint - startPoint) / area[properties.size]).toFixed(4))
+        const off = multiplier * (+((currentPoint - startPoint) / area[properties.size]).toFixed(4));
         let offsetPerc =  Math.max(-1 * previous, Math.min(off, current));
         offsetPerc = Math.max(-1 * (previous - prevLimits.min), Math.min(offsetPerc, current - nextLimits.min));
-        let prevNum = Number((previous + offsetPerc).toFixed(4));
+        let prevNum = +((previous + offsetPerc).toFixed(4));
         if (current) nextSizeArray.splice(index - 1, 2, prevNum, Number((current - offsetPerc).toFixed(4)));
         else nextSizeArray.splice(index - 1, 1, prevNum);
         area.sizes = nextSizeArray.slice(0, nextSizeArray.length - 1).map(Number);
@@ -443,12 +446,12 @@ export const useSplit: TUseSplit = () => {
             // public properties
 
             get axis() {
-                const fdir = this.getAttribute('fdir');
+                const fdir = this.getAttribute(FDIR);
                 return (fdir === 'c' || fdir === 'cr') ? 'y' : 'x';
             }
 
             get isReversed() {
-                const fdir = this.getAttribute('fdir');
+                const fdir = this.getAttribute(FDIR);
                 return fdir === 'cr' || fdir === 'rr';
             }
 
@@ -515,13 +518,13 @@ export const useSplit: TUseSplit = () => {
                 });
                 // observe slotchange
                 const onSlotChange = () => this._render(this.sizes);
-                this.addEventListener('slotchange', onSlotChange);
+                this.addEventListener(SLOTCHANGE, onSlotChange);
                 // observe resize
                 const stopListen = listen(this);
                 // stop listen
                 this._splitCleanUp = () => {
                     stopListen();
-                    this.removeEventListener('slotchange', onSlotChange);
+                    this.removeEventListener(SLOTCHANGE, onSlotChange);
                 };
             }
 

@@ -10,8 +10,6 @@
 
 [![license](https://badgen.net/static/license/Apache%202.0/blue)](https://gitverse.ru/msabitov/effsz/content/master/LICENSE)
 [![npm latest package](https://badgen.net/npm/v/effsz)](https://www.npmjs.com/package/effsz)
-![minified size](https://badgen.net/bundlephobia/min/effsz)
-![minzipped size](https://badgen.net/bundlephobia/minzip/effsz)
 ![install size](https://badgen.net/packagephobia/install/effsz)
 
 </div>
